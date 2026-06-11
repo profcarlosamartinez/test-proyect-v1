@@ -50,4 +50,6 @@ El proyecto aplica Spec-Driven Development (SDD), donde la especificación es el
 
 La constitución es el conjunto de principios que ninguna task puede violar, independientemente de cómo se implemente. Toda revisión de código debe verificar estas reglas primero. Ninguna fase de desarrollo avanza sin revisión; la especificación se critica antes de planificar y el plan antes de codificar.
 
+Con Rama feature-2
+
 **Version**: 12.0 | **Ratified**: 2026-06-11 | **Last Amended**: 2026-06-11
