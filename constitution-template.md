@@ -1,50 +1,53 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# Almacen de Alimnetos Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Flujo de Dependencias Unidireccional (C-01)
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+Flujo de imports estricto: `Router` → `Service` → `UoW` → `Repository` → `Model`. Ninguna capa puede importar de la capa superior bajo ninguna circunstancia.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### II. Responsabilidad de la Transacción (C-02)
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+Ningún `Service` ejecuta `session.commit()` ni `rollback()`. La transacción es responsabilidad exclusiva del Unit of Work (UoW).
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### III. Inmutabilidad y Event Sourcing (C-03, C-04)
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+Las tablas `<<Append>>` (ledgers e historial) jamás reciben `UPDATE` ni `DELETE` desde ninguna capa. El stock nunca se persiste como escalar autoritativo: siempre se deriva por agregación sobre los ledgers.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### IV. Seguridad y Autenticación Restrictiva (C-05, C-06)
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+El rol se verifica desde la base de datos en cada request, nunca solo desde el payload del JWT. El token JWT viaja exclusivamente en cookie `HttpOnly`; el header `Authorization` está deshabilitado por diseño.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### V. Integridad de Datos y Modelado Estricto (C-07, C-08, C-09, C-10)
+
+Snapshot inmutable en pedidos: precio, nombre y costo de envío se congelan al crear el pedido y no se recalculan. Sin FKs polimórficas: toda referencia múltiple se modela con Exclusive Arcs (FKs nullables + CHECK `num_nonnulls`). Maestros con baja lógica: nunca "hard delete" en entidades de negocio; el estado activo deriva de `deleted_at`. Importes monetarios siempre en `DECIMAL`; nunca `FLOAT` o `DOUBLE`.
+
+## Anti-patrones que SDD evita
+
+Para garantizar la calidad de la implementación asistida o manual, se prohíben las siguientes prácticas:
+
+* **Spec-after:** Documentar lo que ya se programó, haciendo que la especificación nazca desactualizada.
+
+* **Vibe coding sin contrato:** Generar código sin criterios de aceptación verificables, resultando en algo no auditable.
+
+* **Divergencia silenciosa:** Apartar el código del modelo sin versionar la decisión.
+
+* **Especificación ambigua:** Requisitos sin identificador ni regla numerada, imposibles de testear.
+
+## Metodología y Flujo de Trabajo (SDD)
+
+El proyecto aplica Spec-Driven Development (SDD), donde la especificación es el artefacto principal ejecutable y el código es su materialización verificable. El flujo exige revisión humana entre cada fase:
+
+* **Specify:** Definir qué se construye y por qué (objetivos, reglas de negocio).
+
+* **Plan:** Definir cómo se construye (stack, arquitectura, contratos).
+
+* **Tasks:** Descomponer en unidades pequeñas, verificables e independientes trazables a la spec.
+
+* **Implement:** Ejecución contra la especificación; toda divergencia se reconcilia mediante auditoría y nunca se ignora.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+La constitución es el conjunto de principios que ninguna task puede violar, independientemente de cómo se implemente. Toda revisión de código debe verificar estas reglas primero. Ninguna fase de desarrollo avanza sin revisión; la especificación se critica antes de planificar y el plan antes de codificar.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 12.0 | **Ratified**: 2026-06-11 | **Last Amended**: 2026-06-11
